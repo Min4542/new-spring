@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.mvc.board.repository.BoardMapper">
+
+    <resultMap id="boardMap" type="com.spring.mvc.board.domain.Board">
+        <result property="boardNo" column="board_no" />
+        <result property="viewCnt" column="view_cnt" />
+        <result property="regDate" column="reg_date" />
+    </resultMap>
+
+    <!-- 1. 페이징 없는 전체조회 버전   -->
+    <!--
+    <select id="getArticles" resultMap="boardMap">
+        SELECT * FROM board
+        ORDER BY board_no DESC
+    </select>
+    -->
+
+    <!-- 2. 페이징 적용 게시물 조회 -->
+    <select id="getArticles" resultMap="boardMap">
+        <!-- CDATA로 감싸는 이유는 마크업 내부에서 특수문자를 문자로 인식시키기 위함 -->
+        <![CDATA[
+            SELECT
+                board_no, writer, title, content, reg_date, view_cnt
+            FROM
+                (SELECT /*+INDEX_DESC(board pk_board)*/
+                    rownum rn, board_no, title, writer, content, reg_date, view_cnt
+                FROM board
+                WHERE rownum <= #{pageNum} * #{amount})
+            WHERE rn > (#{pageNum} - 1) * #{amount}
+        ]]>
+    </select>
+
+    <!-- 3. 검색+페이징 적용 게시물 조회 -->
+    <select id="getSearchArticles" resultMap="boardMap">
+        <!-- CDATA로 감싸는 이유는 마크업 내부에서 특수문자를 문자로 인식시키기 위함 -->
+        <![CDATA[
+            SELECT
+                board_no, writer, title, content, reg_date, view_cnt
+            FROM
+                (
+
+                SELECT /*+INDEX_DESC(board pk_board)*/
+                    rownum rn, board_no, title, writer, content, reg_date, view_cnt
+                FROM board
+                WHERE 1=1
+        ]]>
+                <if test="type == 'title'">
+                    AND title LIKE '%' || #{keyword} || '%'
+                </if>
+                <if test="type == 'content'">
+                    AND content LIKE '%' || #{keyword} || '%'
+                </if>
+                <if test="type == 'writer'">
+                    AND writer LIKE '%' || #{keyword} || '%'
+                </if>
+                <if test="type == 'titleContent'">
+                    AND title LIKE '%' || #{keyword} || '%'
+                        OR content LIKE '%' || #{keyword} || '%'
+                </if>
+        <![CDATA[
+                    AND rownum <= #{pageNum} * #{amount}
+                )
+            WHERE rn > (#{pageNum} - 1) * #{amount}
+        ]]>
+    </select>
+
+    <!--  총 게시물 수 조회  -->
+    <select id="getTotalCount" resultType="int">
+        SELECT COUNT(*)
+        FROM board
+        WHERE 1=1
+        <if test="type == 'title'">
+            AND title LIKE '%' || #{keyword} || '%'
+        </if>
+        <if test="type == 'content'">
+            AND content LIKE '%' || #{keyword} || '%'
+        </if>
+        <if test="type == 'writer'">
+            AND writer LIKE '%' || #{keyword} || '%'
+        </if>
+        <if test="type == 'titleContent'">
+            AND title LIKE '%' || #{keyword} || '%'
+            OR content LIKE '%' || #{keyword} || '%'
+        </if>
+    </select>
+
+    <select id="getContent" resultMap="boardMap">
+        SELECT * FROM board
+        WHERE board_no = #{boardNo}
+    </select>
+
+    <insert id="insertArticle">
+        INSERT INTO board
+            (board_no, title, content, writer)
+        VALUES
+            (seq_board.nextval, #{title}, #{content}, #{writer})
+    </insert>
+
+    <delete id="deleteArticle">
+        DELETE FROM board
+        WHERE board_no = #{boardNo}
+    </delete>
+
+    <update id="modifyArticle">
+        UPDATE board SET
+            title = #{title}, content = #{content}
+        WHERE board_no = #{boardNo}
+    </update>
+
+    <!-- 조회수 상승 SQL   -->
+    <update id="upViewCount">
+        UPDATE board
+        SET view_cnt = view_cnt + 1
+        WHERE board_no = #{boardNo}
+    </update>
+
+</mapper>
