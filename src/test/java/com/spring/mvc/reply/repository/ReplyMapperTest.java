@@ -23,7 +23,7 @@ class ReplyMapperTest {
     void insertTest() {
         for (int i = 1; i <= 20; i++) {
             Reply reply = new Reply();
-            reply.setBoardNo(321);
+            reply.setBoardNo(315);
             reply.setReplyText("테스트 댓글 " + i);
             reply.setReplyWriter("짹짹이" + i);
 
@@ -43,12 +43,12 @@ class ReplyMapperTest {
     @Test
     @DisplayName("특정 게시물을 수정할 수 있어야 한다.")
     void updateTest() {
-//        Reply reply = replyMapper.read(15);
-//        reply.setReplyText("수정된 댓글");
-//
-//        replyMapper.update(reply);
-//
-//        assertEquals(reply.getReplyText(), replyMapper.read(15).getReplyText());
+        Reply reply = replyMapper.read(15);
+        reply.setReplyText("수정된 댓글");
+
+        replyMapper.update(reply);
+
+        assertEquals(reply.getReplyText(), replyMapper.read(15).getReplyText());
     }
 
     @Test
@@ -59,7 +59,7 @@ class ReplyMapperTest {
         replyMapper.delete(11);
         replyMapper.delete(12);
 
-//        assertTrue(replyMapper.getList(322).size() == 16);
+       assertTrue(replyMapper.getList(322).size() == 16);
     }
 
 }
