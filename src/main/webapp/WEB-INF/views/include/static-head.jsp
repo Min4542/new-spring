@@ -10,3 +10,9 @@
 
 <!-- custom css -->
 <link rel="stylesheet" href="/css/main.css">
+
+
+<!--  -->
+
+<!-- 제이쿼리-->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"  crossorigin="anonymous"></script>
