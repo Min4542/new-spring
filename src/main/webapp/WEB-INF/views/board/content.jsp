@@ -148,7 +148,7 @@
                 <!-- Modal footer -->
                 <div class="modal-footer">
                     <button id="replyModBtn" type="button" class="btn btn-dark">수정</button>
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">닫기</button>
+                    <button id="modal-close" type="button" class="btn btn-danger" data-bs-dismiss="modal">닫기</button>
                 </div>
 
 
@@ -209,19 +209,47 @@
 
             }
 
-            //댓글 태그 생성,배치 함수
+         function makePageDOM(pageInfo) {
+            let tag = "";
+
+            const begin = pageInfo.beginPage;
+            const end = pageInfo.endPage;
+
+            //이전 버튼 만들기
+            if (pageInfo.prev) {
+               tag += "<li class='page-item'><a class='page-link page-active' href='" + (begin - 1) +
+                  "'>이전</a></li>";
+            }
+
+            //페이지 번호 리스트 만들기
+            for (let i = begin; i <= end; i++) {
+               const active = (pageInfo.page.pageNum === i) ? 'p-active' : '';
+               tag += "<li class='page-item"+active+"'><a class='page-link page-custom " + active + "' href='" + i + "'>" +
+                  i + "</a></li>";
+            }
+
+            //다음 버튼 만들기
+            if (pageInfo.next) {
+               tag += "<li class='page-item'><a class='page-link page-active' href='" + (end + 1) +
+                  "'>다음</a></li>";
+            }
+
+            //태그 삽입하기
+            $(".pagination").html(tag);
+         }
+            
             //댓글 태그 생성, 배치 함수
-            function makeReplyListDOM(replyList) {
+            function makeReplyListDOM(replyMap) {
                 let tag = '';
 
-                for (let reply of replyList) {
+                for (let reply of replyMap.replyList) {
                     tag += "<div id='replyContent' class='card-body' data-replyId='" + reply.replyNo + "'>" +
                         "    <div class='row user-block'>" +
                         "       <span class='col-md-3'>" +
                         "         <b>" + reply.replyWriter + "</b>" +
                         "       </span>" +
                         "       <span class='offset-md-6 col-md-3 text-right'><b>" + formatDate(reply
-                        .replyDate) +
+                            .replyDate) +
                         "</b></span>" +
                         "    </div><br>" +
                         "    <div class='row'>" +
@@ -236,21 +264,35 @@
 
                 //만든 태그를 댓글목록 안에 배치 
                 $('#replyData').html(tag);
+
+                
+                $('#replyCnt').text(replyMap.maker.totalCount);
+
+                //페이지 태그 배치 
+                makePageDOM(replyMap.maker);
             }
 
             //댓글 목록 비동기 요청 처리 함수 
-            function getReplyList() {
-                fetch('/api/v1/reply/' + boardNo)
+            function getReplyList(pageNum) {
+                fetch('/api/v1/reply/' + boardNo + '/' + pageNum)
                     .then(res => res.json())
-                    .then(replyList => {
-                        console.log(replyList);
-                        makeReplyListDOM(replyList);
+                    .then(replyMap => {
+                        console.log(replyMap);
+                        makeReplyListDOM(replyMap);
                     })
             }
 
+            //페이지 버튼 클릭 이벤트 
+            $('.pagination').on('click','li a', e=>{
+                e.preventDefault();//태그 고유기능 중지 
+                getReplyList(e.target.getAttribute('href'));
+            })
+
+
+
 
             //페이지 진입시 댓글 목록 불러오기
-            getReplyList();
+            getReplyList(1);
 
             //=============================================//''
             // 댓글 등록 처리 
@@ -271,7 +313,7 @@
                 fetch('/api/v1/reply', reqInfo).then(res => res.text())
                     .then(msg => {
                         if (msg === 'insertSuccess') {
-                            getReplyList();
+                            getReplyList(1);
                             $('#newReplyText').val('');
                             $('#newReplyWriter').val('');
                         } else {
@@ -308,6 +350,59 @@
             });
 
 
+
+            //댓글 수정 완료 이벤트 
+            $('#replyModBtn').on('click', e => {
+                const rno = $('#modReplyId').val();
+
+                const reqInfo = {
+                    method: 'PUT',
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        replyNo: rno,
+                        replyText: $('#modReplyText').val()
+                    })
+                };
+                fetch('/api/v1/reply/' + rno, reqInfo)
+                    .then(res => res.text())
+                    .then(msg => {
+                        if (msg === 'modSuccess') {
+                            //모달숨김<->show:열림
+                            // $modal.modal('hide');
+                            $('#modal-close').click();
+                            getReplyList(1);
+                        } else {
+                            alert('댓글 수정 실패!');
+                        }
+                    })
+            });
+
+
+            //댓글 삭제 비동기 요청 이벤트
+            $("#replyData").on("click", "#replyDelBtn", e => {
+                const replyId = e.target.parentNode.parentNode.parentNode.dataset.replyid;
+                //console.log("삭제 버튼 클릭! : " + replyId);
+                if (!confirm("진짜로 삭제할거니??")) {
+                    return;
+                }
+                const reqInfo = {
+                    method: 'DELETE'
+                };
+                fetch('/api/v1/reply/' + replyId, reqInfo)
+                    .then(res => res.text())
+                    .then(msg => {
+                        if (msg === 'delSuccess') {
+                            getReplyList();
+                        } else {
+                            alert("댓글 삭제에 실패했습니다.");
+                        }
+                    })
+            });
+
+
+            
 
         });
     </script>

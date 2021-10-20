@@ -71,3 +71,13 @@ header .menu-box {
 .input-box textarea {
     padding: 10px;    
 }
+
+ ul.pagination {
+            width: fit-content;
+            margin: 5px auto;
+        }
+
+   ul.pagination li.p-active a {
+    background: orangered;
+    color: #fff;
+   }

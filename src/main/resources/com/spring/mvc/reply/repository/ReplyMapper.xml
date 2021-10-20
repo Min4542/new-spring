@@ -34,9 +34,10 @@
         <result property="replyDate" column="reply_date"/>
     </resultMap>
 
-    <!--  댓글 목록 조회  -->
-    <select id="getList" resultMap="replyMap">
-        SELECT * FROM tbl_reply
+<!--총 댓굴 수 조히-->
+    <select id="getCount" resultType="int">
+        SELECT COUNT(*)
+        FROM tbl_reply
         WHERE board_no = #{boardNo}
     </select>
 
@@ -45,5 +46,22 @@
         SELECT * FROM tbl_reply
         WHERE reply_no=#{replyNo}
     </select>
+
+    <select id="getList" resultMap="replyMap">
+        <![CDATA[
+        SELECT
+            reply_no, board_no, reply_text,reply_writer,reply_date
+        FROM(
+            SELECT /*+INDEX(tbl_reply pk_reply)*/
+                rownum rn, reply_no,board_no,
+                reply_text, reply_writer, reply_date
+            FROM tbl_reply
+            WHERE board_no = #{boardNo}
+                AND rownum <= #{page.pageNum} * #{page.amount}
+        )
+       WHERE rn > (#{page.pageNum} - 1) * #{page.amount}
+        ]]>
+    </select>
+
 
 </mapper>
