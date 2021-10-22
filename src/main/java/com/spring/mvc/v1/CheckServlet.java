@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-@WebServlet("/check")
+@WebServlet("/check1234")
 public class CheckServlet extends HttpServlet {
 
     @Override

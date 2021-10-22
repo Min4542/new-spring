@@ -58,7 +58,9 @@
                     href="/board/list?pageNum=${page.pageNum}&amount=${page.amount}&type=${page.type}&keyword=${page.keyword}">글
                     목록보기</a>&nbsp;
 
-                <a href="/board/modify?boardNo=${article.boardNo}">글 수정하기</a>
+                <c:if test="${loginUser.auth == 'ADMIN' || loginUser.account == article.writer}">
+                    <a href="/board/modify?boardNo=${article.boardNo}">글 수정하기</a>
+                </c:if>
 
 
             </div>
@@ -209,35 +211,36 @@
 
             }
 
-         function makePageDOM(pageInfo) {
-            let tag = "";
+            function makePageDOM(pageInfo) {
+                let tag = "";
 
-            const begin = pageInfo.beginPage;
-            const end = pageInfo.endPage;
+                const begin = pageInfo.beginPage;
+                const end = pageInfo.endPage;
 
-            //이전 버튼 만들기
-            if (pageInfo.prev) {
-               tag += "<li class='page-item'><a class='page-link page-active' href='" + (begin - 1) +
-                  "'>이전</a></li>";
+                //이전 버튼 만들기
+                if (pageInfo.prev) {
+                    tag += "<li class='page-item'><a class='page-link page-active' href='" + (begin - 1) +
+                        "'>이전</a></li>";
+                }
+
+                //페이지 번호 리스트 만들기
+                for (let i = begin; i <= end; i++) {
+                    const active = (pageInfo.page.pageNum === i) ? 'p-active' : '';
+                    tag += "<li class='page-item" + active + "'><a class='page-link page-custom " + active +
+                        "' href='" + i + "'>" +
+                        i + "</a></li>";
+                }
+
+                //다음 버튼 만들기
+                if (pageInfo.next) {
+                    tag += "<li class='page-item'><a class='page-link page-active' href='" + (end + 1) +
+                        "'>다음</a></li>";
+                }
+
+                //태그 삽입하기
+                $(".pagination").html(tag);
             }
 
-            //페이지 번호 리스트 만들기
-            for (let i = begin; i <= end; i++) {
-               const active = (pageInfo.page.pageNum === i) ? 'p-active' : '';
-               tag += "<li class='page-item"+active+"'><a class='page-link page-custom " + active + "' href='" + i + "'>" +
-                  i + "</a></li>";
-            }
-
-            //다음 버튼 만들기
-            if (pageInfo.next) {
-               tag += "<li class='page-item'><a class='page-link page-active' href='" + (end + 1) +
-                  "'>다음</a></li>";
-            }
-
-            //태그 삽입하기
-            $(".pagination").html(tag);
-         }
-            
             //댓글 태그 생성, 배치 함수
             function makeReplyListDOM(replyMap) {
                 let tag = '';
@@ -265,7 +268,7 @@
                 //만든 태그를 댓글목록 안에 배치 
                 $('#replyData').html(tag);
 
-                
+
                 $('#replyCnt').text(replyMap.maker.totalCount);
 
                 //페이지 태그 배치 
@@ -283,8 +286,8 @@
             }
 
             //페이지 버튼 클릭 이벤트 
-            $('.pagination').on('click','li a', e=>{
-                e.preventDefault();//태그 고유기능 중지 
+            $('.pagination').on('click', 'li a', e => {
+                e.preventDefault(); //태그 고유기능 중지 
                 getReplyList(e.target.getAttribute('href'));
             })
 
@@ -402,7 +405,7 @@
             });
 
 
-            
+
 
         });
     </script>

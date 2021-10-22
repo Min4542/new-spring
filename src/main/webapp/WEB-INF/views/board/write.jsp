@@ -52,7 +52,7 @@
 		<form class="write-form" action="/board/write" method="post">
 			<div class="input-box">
 
-				# 작성자: <input class="form-control" type="text" name="writer"><br>
+				# 작성자: <input class="form-control" type="text" name="writer" readonly value="${loginUser.account}"><br>
 				# 제목: <input class="form-control" type="text" name="title"><br>
 				# 내용: <br>
 				<textarea class="form-control" rows="5" cols="30" name="content"></textarea>
